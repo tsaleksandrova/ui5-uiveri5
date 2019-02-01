@@ -20,7 +20,7 @@ var mFunctions = {
     }
 
     /* global uiveri5 */
-    window.uiveri5 = {};
+    window.uiveri5 = window.uiveri5 || {};
 
     loadOPAControlFinder().then(function () {
       if (mScriptParams.useClassicalWaitForUI5) {
@@ -221,6 +221,58 @@ var mFunctions = {
         });
       });
     }
+  },
+
+  startLogCollection: function startLogCollection (mScriptParams) {
+    /* eslint no-console: */
+    window.uiveri5 = window.uiveri5 || {};
+    window.uiveri5.console = {};
+    window.uiveri5.logs = [];
+
+    var bLevelMatched;
+    var aLevels = [{
+      name: 'trace',
+      methods: ['trace']
+    }, {
+      name: 'debug',
+      methods: ['debug']
+    }, {
+      name: 'info',
+      methods: ['log', 'info', 'warn']
+    }, {
+      name: 'error',
+      methods: ['error']
+    }];
+
+    aLevels.forEach(function (mLevel) {
+      bLevelMatched = bLevelMatched || mLevel.name === mScriptParams.level.toLowerCase();
+
+      if (bLevelMatched) {
+        // in IE and Edge, logging is only enabled when devtools are open
+        // console.log is a different function when dev tools are open (__BROWSERTOOLS_CONSOLE_SAFEFUNC vs log() { [native code] })
+        // hijack the prototype's function to make sure we capture logs with closed devtools
+        var oConsole = Object.getPrototypeOf(console).log ? Object.getPrototypeOf(console) : console;
+
+        mLevel.methods.forEach(function (sMethod) {
+          if (oConsole[sMethod]) {
+            window.uiveri5.console[sMethod] = window.uiveri5.console[sMethod] || oConsole[sMethod];
+
+            oConsole[sMethod] = function () {
+              window.uiveri5.logs.push({
+                level: mLevel.name,
+                message: arguments[0]
+              });
+
+              window.uiveri5.console[sMethod].apply(this, arguments);
+            };
+          }
+        });
+      }
+    });
+  },
+
+  getAndClearBrowserLogs: function getAndClearBrowserLogs () {
+    return window.uiveri5.logs ? window.uiveri5.logs.splice(0, window.uiveri5.logs.length) : [];
   }
 };
 

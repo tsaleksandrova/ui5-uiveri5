@@ -301,6 +301,28 @@ function run(config) {
         });
       };
 
+      browser.startLogCollection = function () {
+        var sBrowserLogLevel = _.get(config, 'log.browser.level', '');
+
+        if (sBrowserLogLevel) {
+          return browser.executeScript(clientsidescripts.startLogCollection, {
+            level: sBrowserLogLevel
+          }).then(function (logs) {
+            logger.debug('Collecting browser logs with level ' + sBrowserLogLevel);
+            return logs;
+          }).catch(function (e) {
+            logger.debug('Error while initializing browser log collection. Details: ' + e);
+          });
+        }
+      };
+
+      browser.getAndClearLogs = function () {
+        return browser.executeScript(clientsidescripts.getAndClearBrowserLogs)
+          .catch(function (e) {
+            logger.debug('Error while collecting browser logs. Details: ' + e);
+          });
+      };
+
       // add global matchers
       beforeEach(function() {
         jasmine.getEnv().addMatchers(matchers);
@@ -467,16 +489,18 @@ function run(config) {
             }
           }
 
+          browser.startLogCollection();
+
           // load waitForUI5 logic on client
           browser.loadUI5Dependencies();
 
           // ensure app is fully loaded before starting the interactions
           browser.waitForAngular();
-          
+
           // log UI5 version
           return browser.executeScriptWithDescription(clientsidescripts.getUI5Version, 'browser.getUI5Version').then(function (versionInfo) {
             logger.info("UI5 Version: " + versionInfo.version);
-+           logger.info("UI5 Timestamp: " + versionInfo.buildTimestamp);
+            logger.info("UI5 Timestamp: " + versionInfo.buildTimestamp);
           });
         },
 

@@ -8,6 +8,11 @@ exports.config = {
     waitForUI5PollingInterval: 400
   },
   useClassicalWaitForUI5: false,
+  log: {
+    browser: {
+      level: "trace" // trace, debug, info, error
+    }
+  },
   connection: 'direct',
   connectionConfigs: {
     'direct': {
@@ -222,7 +227,8 @@ exports.config = {
   },
 
   reporters: [
-    {name: './reporter/consoleReporter'}
+    {name: './reporter/consoleReporter'},
+    {name: './reporter/browserConsoleReporter'}
   ],
   locators: [
     {name: './defaultLocators'}
