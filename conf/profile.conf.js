@@ -85,6 +85,9 @@ exports.config = {
     'firefox,ie,edge,safari': {
       'windows,mac,linux': {
         '*': {
+          loggingPrefs: {
+            browser: "INFO"
+          },
           remoteWebDriverOptions: {
             maximized: true
           },
@@ -107,6 +110,9 @@ exports.config = {
     'chrome,chromium': {
       '*': {
         '*': {
+          loggingPrefs: {
+            browser: "DEBUG"
+          },
           chromeOptions: {
             'args': [
               'disable-infobars',

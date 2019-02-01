@@ -10,6 +10,7 @@ exports.config = {
     onAction: true
   },
   reporters: [
-    {name: './reporter/screenshotReporter'}
+    {name: './reporter/screenshotReporter'},
+    {name: './reporter/browserConsoleReporter'}
   ]
 };
