@@ -6,6 +6,7 @@ var clientsidescripts = require('./scripts/clientsidescripts');
 var ClassicalWaitForUI5 = require('./scripts/classicalWaitForUI5');
 var Control = require('./control');
 var pageObjectFactory = require('./pageObjectFactory');
+var systemUtil = require('./util/system');
 
 var DEFAULT_CONNECTION_NAME = 'direct';
 var AUTH_CONFIG_NAME = 'auth';
@@ -38,9 +39,7 @@ function run(config) {
   // configure logger
   var logger = require('./logger')(config.verbose);
 
-  // log framework version
-  var pjson = require('../package.json');
-  logger.info(pjson.name + ' v' + pjson.version);
+  logger.info(systemUtil.getUIVeri5Version());
 
   // log config object so far
   logger.debug('Config from command-line: ${JSON.stringify(config)}',{config:config});
@@ -49,26 +48,7 @@ function run(config) {
   var configParser = require('./configParser')(logger);
   config = configParser.mergeConfigs(config);
 
-  config.osTypeString = (function() {
-    var os = require('os');
-    var osType = '';
-
-    if (os.type() == 'Darwin') {
-      osType = 'mac64';
-    } else if (os.type() == 'Linux') {
-      if (os.arch() == 'x64') {
-        osType = 'linux64';
-      } else {
-        osType = 'linux32';
-      }
-    } else if (os.type() == 'Windows_NT') {
-      osType = 'win32';
-    } else {
-      osType = 'unknown';
-    }
-
-    return osType;
-  })();
+  config.osTypeString = systemUtil.getOSTypeString();
 
   // resolve runtime and set browsers with capabilities
   var runtimeResolver = require('./runtimeResolver')(config,logger);
