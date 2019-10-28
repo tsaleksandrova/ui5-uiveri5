@@ -1,4 +1,3 @@
-
 var _ = require('lodash');
 var proxyquire =  require('proxyquire');
 var url = require('url');
@@ -6,6 +5,7 @@ var clientsidescripts = require('./scripts/clientsidescripts');
 var ClassicalWaitForUI5 = require('./scripts/classicalWaitForUI5');
 var Control = require('./control');
 var pageObjectFactory = require('./pageObjectFactory');
+var pluginLoader = require('./plugins/pluginLoader');
 
 var DEFAULT_CONNECTION_NAME = 'direct';
 var AUTH_CONFIG_NAME = 'auth';
@@ -88,6 +88,9 @@ function run(config) {
 
   // start module loader
   var moduleLoader = require('./moduleLoader')(config,logger);
+
+  // load all plugin modules
+  pluginLoader.init(moduleLoader);
 
   // load spec resolver
   var specResolver = moduleLoader.loadModule('specResolver');
@@ -459,22 +462,9 @@ function run(config) {
         }
       });
 
-      // setup plugin hooks
-      jasmine.getEnv().addReporter({
-        suiteStarted: function(jasmineSuite){
-          _callPlugins('suiteStarted',[{name:jasmineSuite.description}]);
-        },
-        specStarted: function(jasmineSpec){
-          _callPlugins('specStarted',[{name:jasmineSpec.description}]);
-        },
-        specDone: function(jasmineSpec){
-          _callPlugins('specDone',[{name:jasmineSpec.description}]);
-        },
-        suiteDone: function(jasmineSuite){
-          _callPlugins('suiteDone',[{name:jasmineSuite.description}]);
-        },
-      });
-  
+      // load jasmine hook plugins
+      jasmine.getEnv().addReporter(pluginLoader.loadJasminePlugins());
+
       // expose navigation helpers to tests
       browser.testrunner.navigation = {
         to: function(url, authConfig) {
@@ -632,34 +622,13 @@ function run(config) {
       return driverActions.mouseMove(bodyElement, {x:-1, y:-1}).perform();
     }
 
-    function _callPlugins(method,args) {
-      return Promise.all(
-        plugins.map(function(module) {
-          if (module[method]) {
-            return module[method].apply(module,args);
-          }
-        })
-      );
-    }
     // register page object factory on global scope
     logger.debug('Loading BDD-style page object factory');
     pageObjectFactory.register(global);
 
-    // load plugins
-    var plugins = moduleLoader.loadModule('plugins');
-    protractorArgv.plugins = [{
-      inline: {
-        setup: function() {
-          _callPlugins('setup');
-        },
-        onPrepare: function() {
-          _callPlugins('onPrepare');
-        },
-        teardown: function() {
-          _callPlugins('teardown');
-        }
-      }
-    }];
+    // load protractor lifecycle plugins
+    protractorArgv.plugins = pluginLoader.loadRunnerPlugins();
+
     // setup connection provider env
     logger.debug('Setting up connection provider environment');
     return connectionProvider.setupEnv().then(function(){
