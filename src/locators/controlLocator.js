@@ -64,19 +64,21 @@ _ControlLocator.prototype.findElementsOverride = function (driver, using, rootSe
       }
     };
   }
-  if (this.matchers.properties) {
-    Object.keys(this.matchers.properties).forEach(function (sProperty) {
-      var vValue = this.matchers.properties[sProperty];
-      if (vValue instanceof RegExp) {
-        this.matchers.properties[sProperty] = {
-          regex: {
-            source: vValue.source,
-            flags: vValue.flags
-          }
-        };
-      }
-    }.bind(this));
-  }
+  ['properties', 'bindingPath'].forEach(function (name) {
+    if (this.matchers[name]) {
+      Object.keys(this.matchers[name]).forEach(function (key) {
+        var vValue = this.matchers[name][key];
+        if (vValue instanceof RegExp) {
+          this.matchers[name][key] = {
+            regex: {
+              source: vValue.source,
+              flags: vValue.flags
+            }
+          };
+        }
+      }.bind(this));
+    }
+  }.bind(this));
 
   var sMatchers = JSON.stringify(this.matchers);
 

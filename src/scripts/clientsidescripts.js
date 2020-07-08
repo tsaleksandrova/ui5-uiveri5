@@ -211,14 +211,17 @@ var mFunctions = {
     if (mMatchers.id && mMatchers.id.regex) {
       mMatchers.id = new RegExp(mMatchers.id.regex.source, mMatchers.id.regex.flags);
     }
-    if (mMatchers.properties) {
-      Object.keys(mMatchers.properties).forEach(function (sProperty) {
-        var mRegexp = mMatchers.properties[sProperty].regex;
-        if (mRegexp) {
-          mMatchers.properties[sProperty] = new RegExp(mRegexp.source, mRegexp.flags);
-        }
-      });
-    }
+
+    ['properties', 'bindingPath'].forEach(function (name) {
+      if (mMatchers[name]) {
+        Object.keys(mMatchers[name]).forEach(function (key) {
+          var mRegexp = mMatchers[name][key].regex;
+          if (mRegexp) {
+            mMatchers[name][key] = new RegExp(mRegexp.source, mRegexp.flags);
+          }
+        });
+      }
+    });
 
     return window.uiveri5._ControlFinder._findElements(mMatchers);
   },
