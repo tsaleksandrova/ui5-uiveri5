@@ -1,3 +1,3 @@
 exports.config = {
-  profile: 'visual'
+  profile: 'acc'
 };

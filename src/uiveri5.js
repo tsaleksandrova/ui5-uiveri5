@@ -7,6 +7,7 @@ var clientsidescripts = require('./scripts/clientsidescripts');
 var ClassicalWaitForUI5 = require('./scripts/classicalWaitForUI5');
 var Control = require('./control');
 var pageObjectFactory = require('./pageObjectFactory');
+var ACC = require('./acc/acc');
 
 var DEFAULT_CONNECTION_NAME = 'direct';
 var AUTH_CONFIG_NAME = 'auth';
@@ -189,6 +190,11 @@ function run(config) {
 
     // execute after test env setup and just before test execution starts
     protractorArgv.onPrepare = function () {
+
+      // TODO pass config
+      logger.debug('Loading ACC module');
+      var acc = new ACC(browser);
+      acc.register(global);
 
       // publish configs on protractor's browser object
       browser.testrunner = {};
@@ -562,6 +568,8 @@ function run(config) {
             .then(function (versionInfo) {
               logger.info('UI5 Version: ' + versionInfo.version);
               logger.info('UI5 Timestamp: ' + versionInfo.buildTimestamp);
+            }).then(function () {
+              return acc.setup(browser);
             });
         },
 
