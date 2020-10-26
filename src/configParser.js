@@ -67,6 +67,8 @@ ConfigParser.prototype._mergeConfig = function (newConfig) {
       return mModule.name || mModule.id;
     });
     if (applyModuleMerge) {
+      // merge arrays of modules in a specific way
+
       if (_.isArray(priorityConfig[key])) {
         // if existing (high prio) config has data about the current key -> update it
         modulesToEnable.forEach(this._updateExistingKey(priorityConfig, key));
