@@ -25,16 +25,8 @@ var mFunctions = {
 
           loadControlFinder()
             .then(function () {
-              if (mScriptParams.useClassicalWaitForUI5) {
-                sDebugLog += '\nLoading classical waitForUI5 implementation.';
-                return loadClassicalWaitForUI5();
-              } else {
-                sDebugLog += '\nLoading OPA5 waitForUI5 implementation.';
-                return loadOPAWaitForUI5().catch(function (sError) {
-                  sDebugLog += '\nFailed to load OPA5 waitForUI5, Fallback to loading classical waitForUI5 implementation. Details: ' + sError;
-                  return loadClassicalWaitForUI5();
-                });
-              }
+              sDebugLog += '\nLoading OPA5 waitForUI5 implementation.';
+              return loadOPAWaitForUI5();
             }).then(function (sLog) {
               fnCallback({log: sDebugLog + (sLog || '')});
             }).catch(function (sError, sLog) {
@@ -50,25 +42,6 @@ var mFunctions = {
     })();
 
     // --- helper function declarations below ---
-    function loadClassicalWaitForUI5() {
-      return new Promise(function (resolve) {
-        if (window.uiveri5.ClassicalWaitForUI5) {
-          resolve();
-        } else {
-          var ClassicalWaitForUI5 = new Function('return (' + mScriptParams.ClassicalWaitForUI5 + ').apply(this, arguments)');
-          window.sap.ui.getCore().registerPlugin({
-            startPlugin: function (oCore) {
-              window.uiveri5.ClassicalWaitForUI5 = new ClassicalWaitForUI5(mScriptParams.autoWait.timeout, {
-                getUIDirty: oCore.getUIDirty.bind(oCore),
-                attachUIUpdated: oCore.attachUIUpdated.bind(oCore)
-              });
-              resolve();
-            }
-          });
-        }
-      });
-    }
-
     function loadOPAWaitForUI5() {
       return new Promise(function (resolve, reject) {
         if (window.uiveri5.autoWaiterAsync) {
@@ -124,8 +97,6 @@ var mFunctions = {
     } else {
       if (window.uiveri5.autoWaiterAsync) {
         window.uiveri5.autoWaiterAsync.waitAsync(fnCallback);
-      } else if (window.uiveri5.ClassicalWaitForUI5) {
-        window.uiveri5.ClassicalWaitForUI5.notifyWhenStable(fnCallback);
       } else {
         fnCallback('waitForUI5: no waitForUI5 implementation is currently loaded.');
       }
